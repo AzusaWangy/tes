@@ -1,0 +1,14 @@
+UKK 2026
+Phpmyadmin	
+https://103.169.188.28:887/phpmyadmin_3e0f09a7fa8fdd2f/	
+Phpmyadmin	(alternatif)
+https://192.11.1.30:887/phpmyadmin_3e0f09a7fa8fdd2f/
+
+WebEditor	https://webeditor.smkn1mejayan.sch.id/	(Login pakai username_ftp dan password)
+
+Ket.	*Gunakan Ip Lokal (192.11.1.30) jika di Area LAB / menggunakan jariangan LAB agar koneksi lebih lancar.	
+
+daftar username password siswa
+https://smkjatim.my.id/ukk/profil_siswa.php
+
+kami sediakan hosting web, silakan diuji hasil aplikasi yg sudah dipelajari disini.
