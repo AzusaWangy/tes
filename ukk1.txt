@@ -1,0 +1,182 @@
+-- =====================================================
+-- DATABASE: parkir
+-- =====================================================
+
+CREATE DATABASE IF NOT EXISTS parkir;
+USE parkir;
+
+-- =====================================================
+-- TABEL 1: tb_user
+-- =====================================================
+CREATE TABLE tb_user (
+    id_user INT(11) PRIMARY KEY AUTO_INCREMENT,
+    nama_lengkap VARCHAR(50) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    role ENUM('admin','petugas','owner') NOT NULL,
+    status_aktif TINYINT(1) DEFAULT 1
+);
+
+-- =====================================================
+-- TABEL 2: tb_area_parkir
+-- =====================================================
+CREATE TABLE tb_area_parkir (
+    id_area INT(11) PRIMARY KEY AUTO_INCREMENT,
+    nama_area VARCHAR(50) NOT NULL,
+    kapasitas INT(5) NOT NULL,
+    terisi INT(5) DEFAULT 0
+);
+
+-- =====================================================
+-- TABEL 3: tb_tarif
+-- =====================================================
+CREATE TABLE tb_tarif (
+    id_tarif INT(11) PRIMARY KEY AUTO_INCREMENT,
+    jenis_kendaraan ENUM('motor','mobil','lainnya') NOT NULL,
+    tarif_per_jam DECIMAL(10,2) NOT NULL
+);
+
+-- =====================================================
+-- TABEL 4: tb_kendaraan
+-- =====================================================
+CREATE TABLE tb_kendaraan (
+    id_kendaraan INT(11) PRIMARY KEY AUTO_INCREMENT,
+    plat_nomor VARCHAR(15) NOT NULL UNIQUE,
+    jenis_kendaraan VARCHAR(20) NOT NULL,
+    warna VARCHAR(20) NOT NULL,
+    pemilik VARCHAR(100) NOT NULL,
+    id_user INT(11),
+    FOREIGN KEY (id_user) REFERENCES tb_user(id_user) ON DELETE SET NULL
+);
+
+-- =====================================================
+-- TABEL 5: tb_transaksi
+-- =====================================================
+CREATE TABLE tb_transaksi (
+    id_parkir INT(11) PRIMARY KEY AUTO_INCREMENT,
+    id_kendaraan INT(11) NOT NULL,
+    waktu_masuk DATETIME NOT NULL,
+    waktu_keluar DATETIME DEFAULT NULL,
+    id_tarif INT(11) NOT NULL,
+    durasi_jam INT(5) DEFAULT 0,
+    biaya_total DECIMAL(10,2) DEFAULT 0,
+    status ENUM('masuk','keluar') NOT NULL,
+    id_user INT(11),
+    id_area INT(11),
+    FOREIGN KEY (id_kendaraan) REFERENCES tb_kendaraan(id_kendaraan),
+    FOREIGN KEY (id_tarif) REFERENCES tb_tarif(id_tarif),
+    FOREIGN KEY (id_user) REFERENCES tb_user(id_user) ON DELETE SET NULL,
+    FOREIGN KEY (id_area) REFERENCES tb_area_parkir(id_area) ON DELETE SET NULL
+);
+
+-- =====================================================
+-- TABEL 6: tb_log_aktivitas
+-- =====================================================
+CREATE TABLE tb_log_aktivitas (
+    id_log INT(11) PRIMARY KEY AUTO_INCREMENT,
+    id_user INT(11),
+    aktivitas VARCHAR(100) NOT NULL,
+    waktu_aktivitas DATETIME NOT NULL,
+    FOREIGN KEY (id_user) REFERENCES tb_user(id_user) ON DELETE SET NULL
+);
+
+-- =====================================================
+-- DATA DUMMY (Siap Input)
+-- =====================================================
+
+-- 1. Data User
+INSERT INTO tb_user (nama_lengkap, username, password, role, status_aktif) VALUES
+('Ahmad Santoso', 'admin', MD5('admin123'), 'admin', 1),
+('Budi Wijaya', 'petugas1', MD5('petugas123'), 'petugas', 1),
+('Citra Dewi', 'petugas2', MD5('petugas123'), 'petugas', 1),
+('Dedi Kurniawan', 'owner', MD5('owner123'), 'owner', 1),
+('Eka Fitriani', 'petugas3', MD5('petugas123'), 'petugas', 0);
+
+-- 2. Data Area Parkir
+INSERT INTO tb_area_parkir (nama_area, kapasitas, terisi) VALUES
+('Area A - Motor', 50, 12),
+('Area B - Mobil', 30, 8),
+('Area C - Motor', 40, 5),
+('Area D - Mobil', 25, 10),
+('Area VIP', 10, 3);
+
+-- 3. Data Tarif
+INSERT INTO tb_tarif (jenis_kendaraan, tarif_per_jam) VALUES
+('motor', 2000.00),
+('mobil', 5000.00),
+('lainnya', 10000.00);
+
+-- 4. Data Kendaraan
+INSERT INTO tb_kendaraan (plat_nomor, jenis_kendaraan, warna, pemilik, id_user) VALUES
+('B 1234 ABC', 'motor', 'Hitam', 'Ahmad Santoso', 1),
+('B 5678 DEF', 'mobil', 'Putih', 'Budi Wijaya', 2),
+('D 9012 GHI', 'motor', 'Merah', 'Citra Dewi', 3),
+('E 3456 JKL', 'mobil', 'Biru', 'Dedi Kurniawan', 4),
+('F 7890 MNO', 'motor', 'Silver', 'Rina Hartati', 1),
+('B 1122 PQR', 'mobil', 'Hitam', 'Tono Supratman', 2),
+('D 3344 STU', 'motor', 'Kuning', 'Siti Aminah', 3);
+
+-- 5. Data Transaksi (Parkir)
+-- Transaksi 1: Sudah keluar
+INSERT INTO tb_transaksi (id_kendaraan, waktu_masuk, waktu_keluar, id_tarif, durasi_jam, biaya_total, status, id_user, id_area) VALUES
+(1, '2024-01-15 08:00:00', '2024-01-15 17:00:00', 1, 9, 18000.00, 'keluar', 2, 1);
+
+-- Transaksi 2: Sudah keluar
+INSERT INTO tb_transaksi (id_kendaraan, waktu_masuk, waktu_keluar, id_tarif, durasi_jam, biaya_total, status, id_user, id_area) VALUES
+(2, '2024-01-15 09:30:00', '2024-01-15 14:30:00', 2, 5, 25000.00, 'keluar', 2, 2);
+
+-- Transaksi 3: Masih parkir (belum keluar)
+INSERT INTO tb_transaksi (id_kendaraan, waktu_masuk, waktu_keluar, id_tarif, durasi_jam, biaya_total, status, id_user, id_area) VALUES
+(3, '2024-01-16 10:00:00', NULL, 1, 0, 0.00, 'masuk', 3, 3);
+
+-- Transaksi 4: Masih parkir
+INSERT INTO tb_transaksi (id_kendaraan, waktu_masuk, waktu_keluar, id_tarif, durasi_jam, biaya_total, status, id_user, id_area) VALUES
+(4, '2024-01-16 11:15:00', NULL, 2, 0, 0.00, 'masuk', 3, 4);
+
+-- Transaksi 5: Sudah keluar
+INSERT INTO tb_transaksi (id_kendaraan, waktu_masuk, waktu_keluar, id_tarif, durasi_jam, biaya_total, status, id_user, id_area) VALUES
+(5, '2024-01-14 13:00:00', '2024-01-14 15:30:00', 1, 2, 4000.00, 'keluar', 1, 1);
+
+-- Transaksi 6: Sudah keluar (parkir semalam)
+INSERT INTO tb_transaksi (id_kendaraan, waktu_masuk, waktu_keluar, id_tarif, durasi_jam, biaya_total, status, id_user, id_area) VALUES
+(6, '2024-01-15 20:00:00', '2024-01-16 08:00:00', 2, 12, 60000.00, 'keluar', 2, 5);
+
+-- Transaksi 7: Masih parkir (area VIP)
+INSERT INTO tb_transaksi (id_kendaraan, waktu_masuk, waktu_keluar, id_tarif, durasi_jam, biaya_total, status, id_user, id_area) VALUES
+(7, '2024-01-16 09:00:00', NULL, 1, 0, 0.00, 'masuk', 3, 5);
+
+-- 6. Data Log Aktivitas
+INSERT INTO tb_log_aktivitas (id_user, aktivitas, waktu_aktivitas) VALUES
+(1, 'Login sistem', '2024-01-16 07:00:00'),
+(1, 'Menambah kendaraan baru (B 1122 PQR)', '2024-01-16 07:15:00'),
+(2, 'Login sistem', '2024-01-16 07:45:00'),
+(2, 'Membuka transaksi parkir masuk - B 1234 ABC', '2024-01-16 08:00:00'),
+(3, 'Login sistem', '2024-01-16 08:30:00'),
+(3, 'Membuka transaksi parkir masuk - D 9012 GHI', '2024-01-16 10:00:00'),
+(2, 'Menutup transaksi parkir keluar - B 1234 ABC', '2024-01-16 17:00:00'),
+(4, 'Login sistem (owner)', '2024-01-16 09:00:00'),
+(4, 'Melihat laporan transaksi harian', '2024-01-16 09:30:00'),
+(3, 'Mengupdate area parkir terisi', '2024-01-16 11:00:00');
+
+-- =====================================================
+-- QUERY TEST (Cek Data)
+-- =====================================================
+
+-- Cek semua user aktif
+SELECT * FROM tb_user WHERE status_aktif = 1;
+
+-- Cek kendaraan yang sedang parkir
+SELECT k.plat_nomor, k.jenis_kendaraan, t.waktu_masuk, a.nama_area
+FROM tb_transaksi t
+JOIN tb_kendaraan k ON t.id_kendaraan = k.id_kendaraan
+JOIN tb_area_parkir a ON t.id_area = a.id_area
+WHERE t.status = 'masuk';
+
+-- Cek pendapatan hari ini
+SELECT SUM(biaya_total) AS total_pendapatan
+FROM tb_transaksi
+WHERE DATE(waktu_keluar) = CURDATE() AND status = 'keluar';
+
+-- Cek kapasitas area parkir
+SELECT nama_area, kapasitas, terisi, (kapasitas - terisi) AS tersedia
+FROM tb_area_parkir;
